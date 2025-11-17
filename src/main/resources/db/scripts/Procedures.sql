@@ -216,3 +216,91 @@ CREATE OR REPLACE PACKAGE BODY PKG_MATRICULA AS
 END PKG_MATRICULA;
 /
 
+CREATE OR REPLACE PACKAGE BODY PKG_GRUPO AS
+
+    PROCEDURE CREAR_GRUPO(
+        P_NOMBRE        IN  VARCHAR2,
+        P_ID_PERIODO    IN  NUMBER,
+        P_ID_ASIGNATURA IN  NUMBER,
+        P_ID_GRUPO      OUT NUMBER,
+        P_MENSAJE       OUT VARCHAR2
+    ) IS
+    BEGIN
+    INSERT INTO GRUPO(nombre, id_periodo_academico, id_asignatura)
+    VALUES (P_NOMBRE, P_ID_PERIODO, P_ID_ASIGNATURA)
+        RETURNING id_grupo INTO P_ID_GRUPO;
+
+    P_MENSAJE := 'Grupo creado correctamente.';
+
+    EXCEPTION
+            WHEN OTHERS THEN
+                P_ID_GRUPO := NULL;
+                P_MENSAJE := SQLERRM;
+    END CREAR_GRUPO;
+
+    PROCEDURE ASIGNAR_DOCENTE(
+        P_ID_GRUPO   IN NUMBER,
+        P_ID_DOCENTE IN NUMBER,
+        P_MENSAJE    OUT VARCHAR2
+    ) IS
+        v_count NUMBER;
+    BEGIN
+    -- 1. Grupo debe existir
+
+    SELECT COUNT(*) INTO v_count FROM GRUPO WHERE id_grupo = P_ID_GRUPO;
+    IF v_count = 0 THEN
+                RAISE_APPLICATION_ERROR(-21001, 'El grupo no existe.');
+    END IF;
+
+
+    -- 2. Docente debe existir
+
+    SELECT COUNT(*) INTO v_count FROM DOCENTE WHERE id_docente = P_ID_DOCENTE;
+    IF v_count = 0 THEN
+                RAISE_APPLICATION_ERROR(-21002, 'El docente no existe.');
+    END IF;
+
+    -- 3. Validar si ya dicta el grupo
+
+    SELECT COUNT(*) INTO v_count
+    FROM GRUPO_DOCENTE
+    WHERE id_grupo = P_ID_GRUPO
+      AND id_docente = P_ID_DOCENTE;
+
+    IF v_count > 0 THEN
+                RAISE_APPLICATION_ERROR(-21003, 'El docente ya está asignado al grupo.');
+    END IF;
+
+    -- 4. VALIDACIÓN DE CRUCE DE HORARIO
+
+    IF EXISTS (
+        SELECT 1
+        FROM CLASE new_c
+        JOIN GRUPO_DOCENTE gd ON gd.id_docente = P_ID_DOCENTE
+        JOIN CLASE old_c ON old_c.id_grupo = gd.id_grupo
+        WHERE new_c.id_grupo = P_ID_GRUPO
+            AND new_c.dia = old_c.dia
+            AND new_c.hora_inicio < old_c.hora_fin
+            AND new_c.hora_fin > old_c.hora_inicio
+    ) THEN
+        RAISE_APPLICATION_ERROR(-21004, 'El docente tiene un cruce de horario.');
+    END IF;
+
+
+    -- 5. Insertar relación GRUPO_DOCENTE
+
+    INSERT INTO GRUPO_DOCENTE(id_grupo, id_docente)
+    VALUES (P_ID_GRUPO, P_ID_DOCENTE);
+
+    P_MENSAJE := 'Docente asignado correctamente.';
+
+    EXCEPTION
+            WHEN OTHERS THEN
+                P_MENSAJE := SQLERRM;
+    END ASIGNAR_DOCENTE;
+
+END PKG_GRUPO;
+/
+
+
+

@@ -35,3 +35,26 @@ CREATE OR REPLACE PACKAGE PKG_MATRICULA AS
 
 END PKG_MATRICULA;
 /
+
+/*
+    Se degine el paquete con los procedimientos usados para la gestión de los grupos.
+ */
+
+CREATE OR REPLACE PACKAGE PKG_GRUPO AS
+
+    PROCEDURE CREAR_GRUPO(
+        P_NOMBRE        IN  VARCHAR2,
+        P_ID_PERIODO    IN  NUMBER,
+        P_ID_ASIGNATURA IN  NUMBER,
+        P_ID_GRUPO      OUT NUMBER,
+        P_MENSAJE       OUT VARCHAR2
+    );
+
+    PROCEDURE ASIGNAR_DOCENTE(
+        P_ID_GRUPO   IN NUMBER,
+        P_ID_DOCENTE IN NUMBER,
+        P_MENSAJE    OUT VARCHAR2
+    );
+
+END PKG_GRUPO;
+/
