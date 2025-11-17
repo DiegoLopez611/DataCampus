@@ -20,4 +20,30 @@ public class MatriculaController {
         return ResponseEntity.ok(matriculaService.iniciarMatricula(request));
     }
 
+    // 2. Agregar grupo
+    @PostMapping("/{idMatricula}/agregar-grupo")
+    public ResponseEntity<MatriculaAgregarGrupoResponse> agregarGrupo(
+            @PathVariable Integer idMatricula,
+            @RequestBody MatriculaAgregarGrupoRequest request) {
+
+        return ResponseEntity.ok(matriculaService.agregarGrupo(idMatricula, request));
+    }
+
+    // 3. Quitar grupo
+    @DeleteMapping("/{idMatricula}/grupo/{idGrupo}")
+    public ResponseEntity<MatriculaQuitarGrupoResponse> quitarGrupo(
+            @PathVariable Integer idMatricula,
+            @PathVariable Integer idGrupo) {
+
+        return ResponseEntity.ok(matriculaService.quitarGrupo(idMatricula, idGrupo));
+    }
+
+    // 4. Finalizar matrícula
+    @PostMapping("/{idMatricula}/finalizar")
+    public ResponseEntity<MatriculaFinalizarResponse> finalizar(
+            @PathVariable Integer idMatricula) {
+
+        return ResponseEntity.ok(matriculaService.finalizarMatricula(idMatricula));
+    }
+
 }

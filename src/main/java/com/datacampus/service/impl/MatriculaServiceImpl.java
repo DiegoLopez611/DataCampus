@@ -74,4 +74,93 @@ public class MatriculaServiceImpl implements MatriculaService {
             );
         }
     }
+
+    @Override
+    public MatriculaAgregarGrupoResponse agregarGrupo(Integer idMatricula, MatriculaAgregarGrupoRequest req) {
+        try {
+
+            SimpleJdbcCall call = new SimpleJdbcCall(jdbc)
+                    .withCatalogName("PKG_MATRICULA")
+                    .withProcedureName("AGREGAR_GRUPO")
+                    .declareParameters(
+                            new SqlParameter("P_ID_MATRICULA", OracleTypes.NUMBER),
+                            new SqlParameter("P_ID_GRUPO", OracleTypes.NUMBER),
+                            new SqlOutParameter("P_MENSAJE", OracleTypes.VARCHAR)
+                    );
+
+            Map<String, Object> result = call.execute(idMatricula, req.idGrupo());
+
+            return new MatriculaAgregarGrupoResponse(
+                    idMatricula,
+                    req.idGrupo(),
+                    (String) result.get("P_MENSAJE")
+            );
+
+        } catch (DataAccessException e) {
+            return new MatriculaAgregarGrupoResponse(
+                    idMatricula,
+                    req.idGrupo(),
+                    "ERROR: " + e.getMostSpecificCause().getMessage()
+            );
+        }
+    }
+
+    @Override
+    public MatriculaQuitarGrupoResponse quitarGrupo(Integer idMatricula, Integer idGrupo) {
+        try {
+
+            SimpleJdbcCall call = new SimpleJdbcCall(jdbc)
+                    .withCatalogName("PKG_MATRICULA")
+                    .withProcedureName("QUITAR_GRUPO")
+                    .declareParameters(
+                            new SqlParameter("P_ID_MATRICULA", OracleTypes.NUMBER),
+                            new SqlParameter("P_ID_GRUPO", OracleTypes.NUMBER),
+                            new SqlOutParameter("P_MENSAJE", OracleTypes.VARCHAR)
+                    );
+
+            Map<String, Object> result = call.execute(idMatricula, idGrupo);
+
+            return new MatriculaQuitarGrupoResponse(
+                    idMatricula,
+                    idGrupo,
+                    (String) result.get("P_MENSAJE")
+            );
+
+        } catch (DataAccessException e) {
+            return new MatriculaQuitarGrupoResponse(
+                    idMatricula,
+                    idGrupo,
+                    "ERROR: " + e.getMostSpecificCause().getMessage()
+            );
+        }
+    }
+
+    @Override
+    public MatriculaFinalizarResponse finalizarMatricula(Integer idMatricula) {
+        try {
+
+            SimpleJdbcCall call = new SimpleJdbcCall(jdbc)
+                    .withCatalogName("PKG_MATRICULA")
+                    .withProcedureName("FINALIZAR_MATRICULA")
+                    .declareParameters(
+                            new SqlParameter("P_ID_MATRICULA", OracleTypes.NUMBER),
+                            new SqlOutParameter("P_MENSAJE", OracleTypes.VARCHAR)
+                    );
+
+            Map<String, Object> result = call.execute(idMatricula);
+
+            return new MatriculaFinalizarResponse(
+                    idMatricula,
+                    (String) result.get("P_MENSAJE")
+            );
+
+        } catch (DataAccessException e) {
+            return new MatriculaFinalizarResponse(
+                    idMatricula,
+                    "ERROR: " + e.getMostSpecificCause().getMessage()
+            );
+        }
+    }
+
+
 }
